@@ -76,3 +76,12 @@
 @media (max-width:1099px){
   body>header.topbar,body>main,body>footer{width:100%;max-width:none}
 }
+
+/* Fascia categorie homepage: fondo avorio e testo ad alto contrasto */
+.services{background:#f7f1e6!important;color:#10251f;border-top:1px solid #e5d7bf;border-bottom:1px solid #e5d7bf}
+.services .servicegrid article{background:transparent}
+.services .servicegrid h2{color:#10251f}
+.services .servicegrid p{color:#5f5548}
+.services .servicegrid article{border-right-color:#d8c6a4}
+.services .servicegrid i{color:#b98b3b}
+@media(max-width:900px){.services .servicegrid article{border-bottom-color:#d8c6a4}}
