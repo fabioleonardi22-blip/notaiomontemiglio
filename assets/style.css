@@ -91,3 +91,14 @@
 .section:has(.split) h2{color:#071e17}
 .section:has(.split) p{color:#625f56}
 .section:has(.split) .btn.dark{color:#071e17;border-color:#c99a43}
+
+/* Ombra laterale morbida sulla cornice del sito */
+@media (min-width:1100px){
+  body>header.topbar,
+  body>main,
+  body>footer{
+    box-shadow:-18px 0 30px -13px rgba(0,0,0,.62),18px 0 30px -13px rgba(0,0,0,.62);
+    position:relative;
+    z-index:1;
+  }
+}
