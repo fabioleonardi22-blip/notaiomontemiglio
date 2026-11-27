@@ -85,3 +85,9 @@
 .services .servicegrid article{border-right-color:#d8c6a4}
 .services .servicegrid i{color:#b98b3b}
 @media(max-width:900px){.services .servicegrid article{border-bottom-color:#d8c6a4}}
+
+/* Homepage - sezione Le sedi su fondo avorio */
+.section:has(.split){background:#f7f1e6;color:#171713}
+.section:has(.split) h2{color:#071e17}
+.section:has(.split) p{color:#625f56}
+.section:has(.split) .btn.dark{color:#071e17;border-color:#c99a43}
