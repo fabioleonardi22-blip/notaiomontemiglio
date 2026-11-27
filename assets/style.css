@@ -64,3 +64,19 @@
 .activitygrid p{font-size:15.5px;line-height:1.7;margin-top:0;max-width:100%}
 @media(max-width:1000px){.activitygrid{grid-template-columns:repeat(2,minmax(0,1fr))}.activitygrid article,.activitygrid article:nth-child(n){min-height:230px}}
 @media(max-width:700px){.activity-intro{grid-template-columns:1fr;margin-bottom:34px}.activity-image{min-height:250px}.activity-intro-copy{padding:28px 25px}.activitygrid{grid-template-columns:1fr;gap:15px}.activitygrid article,.activitygrid article:nth-child(n){min-height:0;padding:27px 25px}.activitygrid h2{font-size:26px}}
+
+/* Identità cromatica e larghezza allineate al layout ampio di Artyou */
+:root{--green:#03140f;--green-deep:#020f0b;--cream:#f7f1e6;--ink:#f4eee3;--muted:#d0c7b8;--line:#8f713c}
+body{background:var(--green-deep);color:var(--cream)}
+.wrap{width:min(1440px,calc(100% - 80px));margin-inline:auto}
+.topbar,footer{background:var(--green-deep)}
+.services{background:#061a13;color:var(--cream);border-bottom:1px solid rgba(201,154,67,.38)}
+.servicegrid h2,.servicegrid p{color:var(--cream)}
+.servicegrid article{border-color:rgba(201,154,67,.34)}
+.section{background:var(--green-deep);color:var(--cream)}
+.section h2,.section h3{color:var(--cream)}
+.section p{color:#d7cebf}
+.studio{background:var(--green-deep);color:var(--cream)}
+.cta,.darksection{background-color:#020f0b}
+@media(max-width:900px){.wrap{width:calc(100% - 40px)}}
+@media(max-width:520px){.wrap{width:calc(100% - 30px)}}
