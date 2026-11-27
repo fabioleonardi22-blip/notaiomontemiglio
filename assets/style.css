@@ -23,3 +23,10 @@
 .activitygrid article:nth-child(4),.activitygrid article:nth-child(5),.activitygrid article:nth-child(6){grid-column:span 2}
 @media(max-width:900px){.activitygrid article:nth-child(4),.activitygrid article:nth-child(5),.activitygrid article:nth-child(6){grid-column:auto}}
 @media(max-width:600px){.activitygrid article:nth-child(4),.activitygrid article:nth-child(5),.activitygrid article:nth-child(6){grid-column:auto}}
+
+/* Homepage: testo e invito della sezione Lo Studio sono entrambi cliccabili */
+.studio-teaser-link{display:block;color:inherit;text-decoration:none;cursor:pointer}
+.studio-teaser-link h2,.studio-teaser-link p{transition:color .2s ease}
+.studio-teaser-link:hover h2{color:var(--gold)}
+.studio-teaser-link:focus-visible,.studio-teaser-copy .btn:focus-visible{outline:2px solid var(--gold);outline-offset:5px}
+.studio-teaser-copy .btn{display:inline-flex;margin-top:18px}
