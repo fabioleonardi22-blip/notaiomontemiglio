@@ -46,3 +46,21 @@
 .studio__cta:hover,.studio__cta:focus-visible{background:var(--studio-ink);color:var(--studio-bg)}
 .studio__text-link:focus-visible,.studio__cta:focus-visible{outline:2px solid var(--studio-gold);outline-offset:4px}
 @media(max-width:800px){.studio{grid-template-columns:1fr}.studio__photo{aspect-ratio:4/3;min-height:0}.studio__photo img{min-height:0}.studio__body{max-width:none}}
+
+/* Restyling Attività: immagine dedicata e sei schede bilanciate */
+.activity-intro{grid-template-columns:1fr 1fr;min-height:340px;margin-bottom:56px;background:#f1e8d9;border:1px solid rgba(185,139,59,.28)}
+.activity-image{min-height:340px;background:linear-gradient(180deg,rgba(7,30,23,.02),rgba(7,30,23,.12)),url('targa-notaio.jpg') center 48%/cover}
+.activity-intro-copy{padding:clamp(28px,4vw,58px);max-width:640px}
+.activity-intro-copy .eyebrow{display:inline-block;padding-bottom:10px;border-bottom:1px solid var(--gold)}
+.activity-intro-copy h2{font-size:clamp(30px,3vw,43px);line-height:1.12;margin:18px 0 16px;max-width:440px}
+.activity-intro-copy p{font-size:17px;line-height:1.75;max-width:470px}
+.activitygrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px;align-items:stretch}
+.activitygrid article,.activitygrid article:nth-child(n){grid-column:auto;display:flex;flex-direction:column;align-items:flex-start;min-height:250px;padding:32px 32px 30px;background:linear-gradient(145deg,#fffdf8 0%,#f8f0e4 100%);border:1px solid #ddc9a4;border-radius:2px;box-shadow:0 5px 18px rgba(41,31,15,.035);transition:transform .25s ease,box-shadow .25s ease,border-color .25s ease}
+.activitygrid article:before{content:"";display:block;width:34px;height:2px;background:var(--gold);margin-bottom:22px}
+.activitygrid article:after{right:-35px;bottom:-62px;width:155px;height:155px;border-color:rgba(185,139,59,.15);box-shadow:0 0 0 16px rgba(185,139,59,.025),0 0 0 32px rgba(185,139,59,.018)}
+.activitygrid article:hover{transform:translateY(-5px);box-shadow:0 16px 34px rgba(38,31,19,.09);border-color:#c99a43}
+.activitygrid b{font-size:10px;letter-spacing:2px;line-height:1.5}
+.activitygrid h2{font-size:clamp(24px,2vw,29px);line-height:1.18;margin:15px 0 13px;max-width:100%}
+.activitygrid p{font-size:15.5px;line-height:1.7;margin-top:0;max-width:100%}
+@media(max-width:1000px){.activitygrid{grid-template-columns:repeat(2,minmax(0,1fr))}.activitygrid article,.activitygrid article:nth-child(n){min-height:230px}}
+@media(max-width:700px){.activity-intro{grid-template-columns:1fr;margin-bottom:34px}.activity-image{min-height:250px}.activity-intro-copy{padding:28px 25px}.activitygrid{grid-template-columns:1fr;gap:15px}.activitygrid article,.activitygrid article:nth-child(n){min-height:0;padding:27px 25px}.activitygrid h2{font-size:26px}}
