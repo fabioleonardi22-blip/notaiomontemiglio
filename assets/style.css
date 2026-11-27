@@ -18,3 +18,8 @@
 .activitygrid p{font-size:16px;line-height:1.65;max-width:410px;margin:0}
 @media(max-width:900px){.activity-intro{grid-template-columns:1fr 1fr}.activity-intro-copy{padding:30px}.activitygrid{grid-template-columns:repeat(2,minmax(0,1fr))}.activitygrid article,.activitygrid article:nth-child(4),.activitygrid article:nth-child(5){grid-column:auto}.activitygrid article:last-child{grid-column:1 / -1}}
 @media(max-width:600px){.activity-intro{grid-template-columns:1fr}.activity-image{min-height:220px}.activity-intro-copy{padding:28px 24px}.activitygrid{grid-template-columns:1fr}.activitygrid article,.activitygrid article:nth-child(4),.activitygrid article:nth-child(5),.activitygrid article:last-child{grid-column:auto;min-height:0;padding:27px 24px}.activity-section{padding-top:35px}}
+
+/* Sei aree di attività: griglia regolare su due righe */
+.activitygrid article:nth-child(4),.activitygrid article:nth-child(5),.activitygrid article:nth-child(6){grid-column:span 2}
+@media(max-width:900px){.activitygrid article:nth-child(4),.activitygrid article:nth-child(5),.activitygrid article:nth-child(6){grid-column:auto}}
+@media(max-width:600px){.activitygrid article:nth-child(4),.activitygrid article:nth-child(5),.activitygrid article:nth-child(6){grid-column:auto}}
