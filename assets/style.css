@@ -122,3 +122,13 @@
 .location-map iframe{display:block;width:100%;height:100%;border:0;filter:sepia(.12) saturate(.82)}
 .locations-section .location-card .btn{margin-top:auto}
 @media(max-width:700px){.locations-section .locations{grid-template-columns:1fr}.locations-section .location-card{padding:26px 22px}.location-map{height:210px}}
+
+
+/* Contatti: l'intera sezione, inclusa la colonna informativa, resta avorio */
+.section:has(.contactgrid){background:#f7f1e6!important;color:#171713}
+.section:has(.contactgrid) .contactgrid>div h2{color:#071e17}
+.section:has(.contactgrid) .contactgrid>div p{color:#625f56}
+.section:has(.contactgrid) .contactgrid>div a{color:#625f56}
+.section:has(.contactgrid) .contactgrid>div a:hover{color:#9b742d}
+.section:has(.contactgrid) form{background:#fffaf1;border:1px solid #ddc9a4}
+.section:has(.contactgrid) form h2{color:#071e17}
