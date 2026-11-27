@@ -36,7 +36,7 @@
 .studio__photo{margin:0;min-height:320px;overflow:hidden}
 .studio__photo img{display:block;width:100%;height:100%;min-height:320px;object-fit:cover;object-position:center}
 .studio__body{align-self:center;padding:clamp(2rem,5vw,4.5rem);max-width:42rem}
-.studio__eyebrow{display:inline-block;margin:0 0:1.2rem;padding-bottom:.55rem;border-bottom:2px solid var(--studio-gold);font:600 .85rem Inter,Arial,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--studio-ink)}
+.studio__eyebrow{display:inline-block;margin:0 0 1.2rem;padding-bottom:.55rem;border-bottom:2px solid var(--studio-gold);font:600 .85rem Inter,Arial,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--studio-ink)}
 .studio__text-link{display:block;color:inherit;text-decoration:none}
 .studio__title{margin:0 0 1.1rem;font-size:clamp(2rem,3.6vw,3.1rem);font-weight:400;line-height:1.1;letter-spacing:-.01em;color:var(--studio-ink)}
 .studio__title em{font-style:italic;color:var(--studio-gold)}
