@@ -102,3 +102,11 @@
     z-index:1;
   }
 }
+
+/* Pagina Attività: il fondo esterno della sezione resta avorio */
+.activity-section{background:#f7f1e6!important;color:#171713}
+.activity-section .activity-intro{background:#f1e8d9}
+.activity-section .activity-intro-copy h2,
+.activity-section .activitygrid h2{color:#071e17}
+.activity-section .activity-intro-copy p,
+.activity-section .activitygrid p{color:#625f56}
