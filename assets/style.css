@@ -110,3 +110,15 @@
 .activity-section .activitygrid h2{color:#071e17}
 .activity-section .activity-intro-copy p,
 .activity-section .activitygrid p{color:#625f56}
+
+
+/* Pagina Sedi: fondo avorio e mappe Google integrate nelle schede */
+.locations-section{background:#f7f1e6!important}
+.locations-section .locations{grid-template-columns:repeat(2,minmax(0,1fr));gap:24px;align-items:stretch}
+.locations-section .location-card{display:flex;flex-direction:column;align-items:flex-start;padding:34px 32px 30px;background:#fffaf1;border:1px solid #ddc9a4;box-shadow:0 8px 24px rgba(41,31,15,.045)}
+.locations-section .location-card h2{font-size:clamp(30px,2.6vw,38px);margin:12px 0 10px;color:#071e17}
+.locations-section .location-address{font-size:17px;line-height:1.7;margin:0 0 20px;color:#625f56}
+.location-map{width:100%;height:190px;margin:0 0 18px;overflow:hidden;border:1px solid #dfd0b5;background:#eee5d5}
+.location-map iframe{display:block;width:100%;height:100%;border:0;filter:sepia(.12) saturate(.82)}
+.locations-section .location-card .btn{margin-top:auto}
+@media(max-width:700px){.locations-section .locations{grid-template-columns:1fr}.locations-section .location-card{padding:26px 22px}.location-map{height:210px}}
