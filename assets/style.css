@@ -627,3 +627,44 @@ button,a{ -webkit-tap-highlight-color:transparent }
  .studio-between-cta{padding:24px 0}
  .studio-between-cta .ctainner{flex-direction:column;align-items:flex-start;gap:16px}
 }
+
+
+/* Profilo Notaio: impaginazione editoriale sobria e leggibile */
+.profile-section{background:#f7f1e6;padding:clamp(54px,7vw,88px) 0}
+.profile-editorial{
+  max-width:1160px;margin:0 auto;
+  display:grid;grid-template-columns:minmax(230px,.72fr) minmax(0,1.28fr);
+  gap:clamp(42px,7vw,100px);align-items:start;
+}
+.profile-aside{position:sticky;top:34px;padding:8px 0 0}
+.profile-aside .eyebrow{display:inline-block;margin-bottom:14px}
+.profile-aside h2{font:400 clamp(38px,4vw,54px)/1.06 Georgia,"Times New Roman",serif;color:#071e17;margin:0 0 14px}
+.profile-aside h2 em{font-style:italic;color:#9b7736}
+.profile-aside-role{font:600 11px/1.5 Inter,Arial,sans-serif;letter-spacing:2px;text-transform:uppercase;color:#8d6b31;margin:0}
+.profile-aside-rule{width:52px;height:1px;background:#c99a43;margin:24px 0}
+.profile-aside-intro{font:17px/1.75 Georgia,"Times New Roman",serif;color:#625f56;max-width:30ch;margin:0 0 30px}
+.profile-aside .profile-timeline{margin:0 0 25px;padding-left:17px;gap:15px}
+.profile-aside .profile-timeline>div{grid-template-columns:48px minmax(0,1fr);gap:10px}
+.profile-aside .profile-timeline strong{font-size:12px}
+.profile-aside .profile-timeline span{font-size:13px;line-height:1.55}
+.profile-official-link{display:inline-block;padding-top:16px;border-top:1px solid #ddc9a4;color:#173b30;text-decoration:none;font:600 11px/1.5 Inter,Arial,sans-serif;letter-spacing:.7px}
+.profile-official-link span{color:#a77b31;margin-left:5px}
+.profile-editorial-copy{max-width:720px}
+.profile-editorial-copy p{font:17px/1.8 Georgia,"Times New Roman",serif;color:#625f56;margin:0 0 19px}
+.profile-editorial-copy .profile-lead{font-size:21px;line-height:1.6;color:#18352b;margin-bottom:24px}
+.profile-editorial-copy h3{font:400 clamp(25px,2.7vw,32px)/1.2 Georgia,"Times New Roman",serif;color:#071e17;margin:38px 0 16px}
+.profile-quote{margin:32px 0 0;padding:18px 0 18px 22px;border-left:2px solid #c99a43;color:#173b30;font:italic 18px/1.7 Georgia,"Times New Roman",serif}
+@media(max-width:800px){
+ .profile-editorial{grid-template-columns:1fr;gap:38px}
+ .profile-aside{position:static;padding:0}
+ .profile-aside-intro{max-width:55ch}
+ .profile-aside .profile-timeline{max-width:460px}
+ .profile-editorial-copy{max-width:none}
+}
+@media(max-width:600px){
+ .profile-section{padding:44px 0}
+ .profile-editorial-copy p{font-size:16px;line-height:1.75}
+ .profile-editorial-copy .profile-lead{font-size:19px}
+ .profile-editorial-copy h3{margin-top:30px}
+ .profile-quote{font-size:17px}
+}
