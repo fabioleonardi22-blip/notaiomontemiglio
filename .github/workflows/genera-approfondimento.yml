@@ -1,4 +1,4 @@
-name: Genera bozza Approfondimenti
+name: Pubblica automaticamente gli Approfondimenti
 
 on:
   push:
@@ -12,39 +12,38 @@ on:
 
 permissions:
   contents: write
-  pull-requests: write
 
 concurrency:
-  group: generazione-approfondimenti
+  group: pubblicazione-approfondimenti
   cancel-in-progress: false
 
 jobs:
-  genera-bozza:
+  pubblica-articolo:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: main
       - name: Configura Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Verifica fonti istituzionali e genera bozza
+      - name: Verifica fonti, genera e valida l'articolo
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GEMINI_MODEL: gemini-3.1-flash-lite
         run: python scripts/genera_approfondimento.py
-      - name: Apri richiesta di revisione
-        uses: peter-evans/create-pull-request@v7
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: "Crea bozza editoriale per Approfondimenti"
-          title: "Revisione editoriale: nuovo approfondimento notarile"
-          body: |
-            Bozza generata a partire da pagine e articoli del Consiglio Nazionale del Notariato.
-            
-            **Non è pubblicata sul sito.** Verificare ogni informazione, aggiornare le fonti e approvare il contenuto prima della pubblicazione.
-          branch: "editoriale/bozza-approfondimento"
-          delete-branch: true
-          add-paths: |
-            approfondimenti/bozze/*.md
+      - name: Pubblica i file verificati su main
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add approfondimenti/articoli/
+          git add approfondimenti/articoli.json
+          if git diff --cached --quiet; then
+            echo "Nessun nuovo articolo da pubblicare."
+            exit 0
+          fi
+          git commit -m "Pubblica nuovo approfondimento verificato"
+          git push origin HEAD:main
