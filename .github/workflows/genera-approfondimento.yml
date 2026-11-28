@@ -1,6 +1,11 @@
 name: Genera bozza Approfondimenti
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/genera_approfondimento.py"
+      - ".github/workflows/genera-approfondimento.yml"
   schedule:
     - cron: "0 6 * * 1"
   workflow_dispatch:
