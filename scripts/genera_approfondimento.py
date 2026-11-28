@@ -182,8 +182,28 @@ FONTI ISTITUZIONALI:
         headers={"Authorization": "Bearer " + os.environ["OPENAI_API_KEY"], "Content-Type": "application/json"},
         method="POST"
     )
-    with urllib.request.urlopen(request, timeout=150) as response:
-        result = json.loads(response.read().decode("utf-8"))
+    result = None
+    for attempt in range(4):
+        try:
+            with urllib.request.urlopen(request, timeout=150) as response:
+                result = json.loads(response.read().decode("utf-8"))
+            break
+        except urllib.error.HTTPError as exc:
+            detail = exc.read().decode("utf-8", "replace")
+            try:
+                api_error = json.loads(detail).get("error", {})
+                code = api_error.get("code", "")
+                message = api_error.get("message", detail[:1200])
+            except Exception:
+                code, message = "", detail[:1200]
+            if exc.code == 429 and code not in ("insufficient_quota", "billing_hard_limit_reached") and attempt < 3:
+                wait = 15 * (2 ** attempt)
+                print(f"OpenAI rate limit (tentativo {attempt + 1}/4): nuovo tentativo tra {wait}s.")
+                time.sleep(wait)
+                continue
+            raise SystemExit(f"API OpenAI HTTP {exc.code} ({code or 'errore'}): {message}")
+    if result is None:
+        raise SystemExit("API OpenAI non ha restituito una risposta.")
     article = json.loads(result["choices"][0]["message"]["content"])
     if article.get("skip"):
         raise SystemExit("Nessuna bozza adatta: " + str(article.get("reason", "fonti insufficienti")))
