@@ -528,3 +528,13 @@ button,a{ -webkit-tap-highlight-color:transparent }
 .section:has(.article-body) article.wrap>p:last-child a{color:#173b30;text-decoration-color:#b88732}
 .article-hero-image{display:block;width:100%;height:auto;max-height:480px;object-fit:cover;margin:30px 0 38px;border:1px solid #ddc9a4}
 @media(max-width:700px){.article-hero-image{margin:22px 0 28px;max-height:320px}}
+
+
+/* Immagine dello studio nell'introduzione degli Approfondimenti */
+.insights-intro-grid{align-items:start}
+.insights-intro-visual{min-width:0}
+.insights-intro-visual h2{margin-bottom:24px}
+.insights-intro-visual img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;object-position:center 54%;border:1px solid #ddc9a4}
+@media(max-width:800px){
+ .insights-intro-visual img{aspect-ratio:16/10}
+}
