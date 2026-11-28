@@ -169,7 +169,7 @@ Prima di scrivere, confronta le fonti: devono esserci almeno DUE articoli istitu
 Scrivi in italiano chiaro e sobrio, circa 450-650 parole, con titolo, introduzione, 2-3 sezioni H2 e conclusione pratica. Ogni affermazione giuridica o fiscale deve essere direttamente supportata dagli estratti forniti; se non è supportata, omettila o segnala che necessita di verifica notarile. Non introdurre norme, sentenze, aliquote, scadenze, procedure o obblighi non esplicitamente documentati dalle fonti. Le fonti di un articolo locale non dimostrano una regola nazionale.
 Includi meta description max 155 caratteri e slug. Inserisci un riquadro iniziale che dica: "BOZZA DA VERIFICARE: contenuto divulgativo non pubblicato, da sottoporre a revisione notarile; non costituisce consulenza sul caso concreto."
 Rispondi skip se non puoi sostenere un approfondimento utile con almeno due fonti dirette e coerenti.
-Rispondi esclusivamente con JSON valido: title, slug, category, meta_description, article_markdown, sources (array di oggetti name,url), evidence (array di oggetti claim, source_urls), oppure skip e reason.
+Per ogni affermazione fattuale o giuridica sostanziale, inserisci una voce evidence con claim, source_url e exact_quote: una citazione letterale continua di almeno 12 parole copiata dall’estratto di quella fonte. Le fonti devono sostenere davvero le affermazioni; non basta aggiungere link generici. Se le fonti non documentano un tema in modo sufficiente, restituisci skip.\nRispondi esclusivamente con JSON valido: title, slug, category, meta_description, article_markdown, sources (array di oggetti name,url), evidence (array di oggetti claim, source_url, exact_quote), oppure skip e reason.
 FONTI ISTITUZIONALI:
 {json.dumps(sources, ensure_ascii=False)}
 """
@@ -254,13 +254,20 @@ FONTI ISTITUZIONALI:
     if len(selected_urls) < 2:
         raise SystemExit("Bozza scartata: non cita almeno due articoli istituzionali effettivamente letti.")
     evidence = article.get("evidence", [])
-    if not isinstance(evidence, list) or not evidence:
-        raise SystemExit("Bozza scartata: manca la mappa delle affermazioni e delle relative fonti.")
+    source_text = {item["url"]: item["extract"] for item in sources}
+    if not isinstance(evidence, list) or len(evidence) < 3:
+        raise SystemExit("Pubblicazione annullata: servono almeno tre prove testuali.")
+    evidence_urls = set()
     for entry in evidence:
         claim = entry.get("claim", "")
-        refs = entry.get("source_urls", [])
-        if not claim or not refs or any(url not in selected_urls for url in refs):
-            raise SystemExit("Bozza scartata: mappa delle evidenze incompleta o con fonti non verificate.")
+        url = entry.get("source_url", "")
+        quote = entry.get("exact_quote", "").strip()
+        if (not claim or url not in selected_urls or len(quote.split()) < 12
+                or quote not in source_text.get(url, "")):
+            raise SystemExit("Pubblicazione annullata: citazione non letterale, non verificata o non collegata a una fonte selezionata.")
+        evidence_urls.add(url)
+    if len(evidence_urls) < 2:
+        raise SystemExit("Pubblicazione annullata: le prove devono provenire da almeno due fonti pertinenti.")
     target = Path("approfondimenti/bozze")
     target.mkdir(parents=True, exist_ok=True)
     path = target / f"{today.isoformat()}-{slug}.md"
