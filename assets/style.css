@@ -538,3 +538,22 @@ button,a{ -webkit-tap-highlight-color:transparent }
 @media(max-width:800px){
  .insights-intro-visual img{aspect-ratio:16/10}
 }
+
+
+/* Gerarchia tipografica più equilibrata negli articoli */
+.section:has(.article-body) .article-body h2{
+  font-size:clamp(26px,3vw,36px);
+  line-height:1.18;
+  margin:30px 0 14px;
+  font-weight:400;
+}
+.section:has(.article-body) .article-body h3{
+  font-size:clamp(21px,2.2vw,27px);
+  line-height:1.25;
+  margin:24px 0 12px;
+  font-weight:400;
+}
+@media(max-width:700px){
+  .section:has(.article-body) .article-body h2{font-size:27px;margin:26px 0 12px}
+  .section:has(.article-body) .article-body h3{font-size:22px}
+}
