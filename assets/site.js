@@ -27,6 +27,41 @@ const b=document.querySelector('.menu'),n=document.querySelector('.nav nav');if(
   if(footer&&!footer.querySelector('.cookie-preferences-link')){const a=document.createElement('a');a.href='#cookie-preferences';a.className='cookie-preferences-link';a.textContent='Preferenze cookie';a.addEventListener('click',e=>{e.preventDefault();openBanner(true)});footer.appendChild(a)}
 })();
 
+// Caricamento degli approfondimenti pubblicati automaticamente dopo i controlli sulle fonti
+(() => {
+  const container = document.querySelector('#articoli .insights-empty');
+  if (!container) return;
+  fetch('approfondimenti/articoli.json', { cache: 'no-store' })
+    .then(response => response.ok ? response.json() : [])
+    .then(items => {
+      if (!Array.isArray(items) || !items.length) return;
+      const grid = document.createElement('div');
+      grid.className = 'insights-published-grid';
+      items.forEach(item => {
+        const card = document.createElement('article');
+        card.className = 'insights-published-card';
+        const category = document.createElement('span');
+        category.className = 'topic-label';
+        category.textContent = item.category || 'Approfondimento';
+        const title = document.createElement('h3');
+        title.textContent = item.title || 'Approfondimento notarile';
+        const desc = document.createElement('p');
+        desc.textContent = item.description || '';
+        const date = document.createElement('small');
+        date.textContent = item.date || '';
+        const link = document.createElement('a');
+        link.href = item.url;
+        link.textContent = 'Leggi l’approfondimento →';
+        card.append(category, title, desc, date, link);
+        grid.appendChild(card);
+      });
+      container.replaceWith(grid);
+      const status = document.querySelector('.insights-status');
+      if (status) status.textContent = 'APPROFONDIMENTI PUBBLICATI';
+    })
+    .catch(() => {});
+})();
+
 // Interazioni della pagina Approfondimenti
 (() => {
   const topics = document.querySelectorAll('.insights-topic');
