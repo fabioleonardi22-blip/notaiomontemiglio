@@ -406,3 +406,5 @@ button,a{ -webkit-tap-highlight-color:transparent }
   .hero h1,.pagehero h1{font-size:34px}
   .activitygrid article,.activitygrid article:nth-child(n){padding:22px 18px}
 }
+
+.photo.photo-card{object-position:68% center}
