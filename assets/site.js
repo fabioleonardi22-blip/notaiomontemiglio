@@ -1,4 +1,4 @@
-const b=document.querySelector('.menu'),n=document.querySelector('.nav nav');if(b&&n)b.addEventListener('click',()=>n.classList.toggle('open'));const y=document.getElementById('year');if(y)y.textContent=new Date().getFullYear();
+const b=document.querySelector('.menu'),n=document.querySelector('.nav nav');if(b&&n)b.addEventListener('click',()=>{const o=n.classList.toggle('open');b.setAttribute('aria-expanded',o?'true':'false');b.setAttribute('aria-label',o?'Chiudi menu':'Apri menu')});const y=document.getElementById('year');if(y)y.textContent=new Date().getFullYear();
 
 (() => {
   const KEY='dm_cookie_consent_v1';
