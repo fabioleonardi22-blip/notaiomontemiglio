@@ -19,6 +19,8 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Installa certificati CA aggiornati
+        run: python -m pip install --upgrade certifi
       - name: Genera bozza da fonti istituzionali
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
