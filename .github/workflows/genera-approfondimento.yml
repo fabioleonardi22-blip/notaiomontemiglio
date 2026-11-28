@@ -36,4 +36,3 @@ jobs:
             **Non è pubblicata sul sito.** Verificare ogni informazione, aggiornare le fonti e approvare il contenuto prima della pubblicazione.
           branch: "editoriale/bozza-approfondimento"
           delete-branch: true
-          labels: "revisione,contenuti"
