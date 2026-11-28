@@ -155,6 +155,41 @@ def collect_sources():
     print(f"Contenuti istituzionali completi raccolti: {len(collected)}")
     return collected[:12]
 
+def markdown_to_html(markdown):
+    """Convertitore minimale e sicuro per il Markdown prodotto dal modello."""
+    out = []
+    in_list = False
+    for raw_line in markdown.splitlines():
+        line = raw_line.strip()
+        if not line:
+            if in_list:
+                out.append("</ul>")
+                in_list = False
+            continue
+        if line.startswith("# "):
+            if in_list:
+                out.append("</ul>")
+                in_list = False
+            out.append("<h2>" + html.escape(line[2:]) + "</h2>")
+        elif line.startswith("## "):
+            if in_list:
+                out.append("</ul>")
+                in_list = False
+            out.append("<h2>" + html.escape(line[3:]) + "</h2>")
+        elif line.startswith("- "):
+            if not in_list:
+                out.append("<ul>")
+                in_list = True
+            out.append("<li>" + html.escape(line[2:]) + "</li>")
+        else:
+            if in_list:
+                out.append("</ul>")
+                in_list = False
+            out.append("<p>" + html.escape(line) + "</p>")
+    if in_list:
+        out.append("</ul>")
+    return "\n".join(out)
+
 def main():
     if not os.environ.get("GEMINI_API_KEY"):
         raise SystemExit("Secret GEMINI_API_KEY mancante.")
@@ -268,36 +303,50 @@ FONTI ISTITUZIONALI:
         evidence_urls.add(url)
     if len(evidence_urls) < 2:
         raise SystemExit("Pubblicazione annullata: le prove devono provenire da almeno due fonti pertinenti.")
-    target = Path("approfondimenti/bozze")
+    target = Path("approfondimenti/articoli")
     target.mkdir(parents=True, exist_ok=True)
-    path = target / f"{today.isoformat()}-{slug}.md"
-    # Non sovrascrivere mai una bozza già esistente.
+    path = target / f"{slug}.html"
     if path.exists():
-        path = target / f"{today.isoformat()}-{slug}-{dt.datetime.now().strftime('%H%M%S')}.md"
-    title = article["title"].replace('"', "'").replace("\n", " ")
-    category = article["category"].replace('"', "'").replace("\n", " ")
-    description = article["meta_description"].replace('"', "'").replace("\n", " ")
-    content = f"""---
-status: bozza-da-verificare
-date: {today.isoformat()}
-title: "{title}"
-slug: {slug}
-category: "{category}"
-meta_description: "{description}"
----
+        raise SystemExit(f"Articolo già esistente: {path}; pubblicazione duplicata bloccata.")
+    title_html = html.escape(article["title"])
+    category_html = html.escape(article["category"])
+    description_html = html.escape(article["meta_description"])
+    body_html = markdown_to_html(article["article_markdown"])
+    sources_html = "\n".join(
+        f'<li><a href="{html.escape(url, quote=True)}" target="_blank" rel="noopener noreferrer">{html.escape(allowed_sources[url]["title"])}</a></li>'
+        for url in sorted(selected_urls)
+    )
+    article_html = f"""<!doctype html>
+<html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="{description_html}"><meta name="robots" content="index,follow">
+<title>{title_html} | Studio Daria Montemiglio</title>
+<link rel="canonical" href="https://notaiomontemiglio.vercel.app/approfondimenti/articoli/{slug}.html">
+<link rel="stylesheet" href="../../assets/style.css"></head><body>
+<header class="topbar"><div class="wrap nav"><a class="brand" href="../../index.html"><span class="monogram">DM</span><span class="brandname">DARIA MONTEMIGLIO<small>NOTAIO</small></span></a><nav><a href="../../index.html">Home</a><a href="../../studio.html">Lo Studio</a><a href="../../attivita.html">Attività</a><a href="../../approfondimenti.html">Approfondimenti</a><a href="../../sedi.html">Sedi</a><a href="../../contatti.html">Contatti</a></nav></div></header>
+<main class="section"><article class="wrap" style="max-width:850px"><p class="eyebrow">Approfondimenti · {category_html}</p><h1>{title_html}</h1><p class="insights-intro-note">Contenuto divulgativo basato sulle fonti istituzionali indicate. Aggiornato al {today.isoformat()}. Non sostituisce la valutazione del caso concreto.</p><div class="article-body">{body_html}</div><section class="insights-sources"><h2>Fonti</h2><ul>{sources_html}</ul></section><p><a href="../../approfondimenti.html">← Torna agli Approfondimenti</a></p></article></main>
+<footer><div class="wrap foot"><span>© {today.year} Studio Notarile Daria Montemiglio</span><span>Roma · Albano Laziale</span><a href="../../privacy-policy.html">Privacy Policy</a><a href="../../cookie-policy.html">Cookie Policy</a></div></footer>
+<script src="../../assets/site.js"></script></body></html>"""
+    path.write_text(article_html, encoding="utf-8")
 
-# {article['title']}
+    manifest_path = Path("approfondimenti/articoli.json")
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8")) if manifest_path.exists() else []
+    except json.JSONDecodeError:
+        raise SystemExit("Indice articoli non valido: pubblicazione annullata.")
+    manifest = [item for item in manifest if item.get("slug") != slug]
+    manifest.insert(0, {
+        "title": article["title"],
+        "slug": slug,
+        "category": article["category"],
+        "description": article["meta_description"],
+        "date": today.isoformat(),
+        "url": f"approfondimenti/articoli/{slug}.html",
+        "sources": sorted(selected_urls)
+    })
+    manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    print(f"ARTICOLO PUBBLICATO NEL REPOSITORY: {path}")
+    print(f"Indice aggiornato: {manifest_path}")
 
-> **BOZZA NON PUBBLICATA.** Da verificare integralmente dal Notaio prima di qualsiasi pubblicazione. Non costituisce consulenza sul caso concreto.
-
-{article['article_markdown']}
-
-## Fonti istituzionali
-
-{chr(10).join(source_rows)}
-"""
-    path.write_text(content, encoding="utf-8")
-    print(f"Bozza generata: {path}")
 
 if __name__ == "__main__":
     main()
