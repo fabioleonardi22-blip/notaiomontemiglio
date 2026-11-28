@@ -432,3 +432,14 @@ button,a{ -webkit-tap-highlight-color:transparent }
 .insights-home p{max-width:650px}
 @media(max-width:850px){.insights-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:560px){.insights-grid{grid-template-columns:1fr}.insights-grid article{min-height:0;padding:25px}}
+
+
+/* Approfondimenti: fondo avorio coerente con l'identità dello Studio */
+.insights-section{background:#f7f1e6;color:#18352b}
+.insights-section .insights-intro h2{color:#18352b}
+.insights-section .insights-intro p,
+.insights-section .insights-contact{color:#46564d}
+.insights-section .insights-grid article{background:#fffaf1;color:#18352b}
+.insights-section .insights-grid article h2{color:#18352b}
+.insights-section .insights-grid article p{color:#46564d}
+.insights-section .insights-note{background:#eee5d5;color:#18352b}
