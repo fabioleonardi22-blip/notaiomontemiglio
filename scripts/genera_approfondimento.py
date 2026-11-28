@@ -1,98 +1,175 @@
 #!/usr/bin/env python3
-"""Genera una bozza editoriale da fonti istituzionali. Non pubblica direttamente."""
+"""Prepara una bozza editoriale usando contenuti istituzionali verificabili. Non pubblica."""
 import datetime as dt
 import html
 import json
 import os
 import re
-import ssl
+import shutil
+import subprocess
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
-import certifi
 from pathlib import Path
 
-SOURCES = [
+BASES = [
     ("Consiglio Nazionale del Notariato – News", "https://www.notariato.it/it/news/"),
+    ("Consiglio Nazionale del Notariato – Archivio news", "https://www.notariato.it/it/archivio-news/"),
     ("Consiglio Nazionale del Notariato – Comunicati stampa", "https://www.notariato.it/it/comunicati-stampa/"),
-    ("Agenzia delle Entrate", "https://www.agenziaentrate.gov.it/portale/web/guest/home"),
 ]
-def fetch(url):
-    req = urllib.request.Request(url, headers={"User-Agent":"Mozilla/5.0 (compatible; StudioMontemiglioEditorialBot/1.0; +https://notaiomontemiglio.vercel.app)"})
-    context = ssl.create_default_context(cafile=certifi.where())
-    last_error = None
-    for attempt in range(3):
+ALLOWED_HOSTS = {"www.notariato.it", "notariato.it"}
+HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; StudioMontemiglioEditorialBot/1.1; +https://notaiomontemiglio.vercel.app)"}
+
+def safe_url(url):
+    parsed = urllib.parse.urlparse(url)
+    return parsed.scheme == "https" and parsed.hostname in ALLOWED_HOSTS
+
+def fetch(url, limit=1_800_000):
+    if not safe_url(url):
+        raise ValueError(f"URL non consentito: {url}")
+    request = urllib.request.Request(url, headers=HEADERS)
+    try:
+        with urllib.request.urlopen(request, timeout=35) as response:
+            return response.read(limit).decode("utf-8", "replace")
+    except Exception as first_error:
+        # Fallback su curl del runner: usa il trust store di sistema, senza disabilitare TLS.
+        curl = shutil.which("curl")
+        if not curl:
+            raise RuntimeError(f"Download fallito: {first_error}") from first_error
+        result = subprocess.run(
+            [curl, "--fail", "--location", "--silent", "--show-error",
+             "--max-time", "45", "--max-filesize", str(limit), "--user-agent", HEADERS["User-Agent"], url],
+            capture_output=True, text=True, timeout=55
+        )
+        if result.returncode:
+            raise RuntimeError(f"Download fallito con urllib e curl: {first_error}; {result.stderr.strip()}")
+        return result.stdout[:limit]
+
+def clean_html(raw):
+    raw = re.sub(r"(?is)<(script|style|noscript|svg|nav|footer|header).*?>.*?</\\1>", " ", raw)
+    raw = re.sub(r"(?s)<[^>]+>", " ", raw)
+    raw = html.unescape(raw)
+    return re.sub(r"\\s+", " ", raw).strip()
+
+def page_links(raw, base_url):
+    links = []
+    # Estrazione link essenziale senza dipendenze: i link vengono poi validati.
+    for match in re.finditer(r"""(?is)<a\\b[^>]*href\\s*=\\s*["']([^"']+)["'][^>]*>(.*?)</a>""", raw):
+        href, label = match.groups()
+        title = clean_html(label)
+        absolute = urllib.parse.urljoin(base_url, html.unescape(href))
+        parsed = urllib.parse.urlparse(absolute)
+        if (safe_url(absolute) and parsed.path.startswith(("/it/news/", "/it/comunicati-stampa/"))
+                and len(title) > 24 and not title.lower().startswith(("leggi", "scopri", "torna"))):
+            links.append({"title": title[:240], "url": absolute})
+    unique = {}
+    for item in links:
+        unique[item["url"]] = item
+    return list(unique.values())
+
+def collect_sources():
+    collected = []
+    failures = []
+    seen = set()
+    for name, url in BASES:
         try:
-            with urllib.request.urlopen(req, timeout=30, context=context) as r:
-                raw = r.read(1_500_000)
-            break
-        except urllib.error.HTTPError as exc:
-            last_error = exc
-            if exc.code != 429 or attempt == 2:
-                raise
-            retry_after = exc.headers.get("Retry-After")
-            time.sleep(min(int(retry_after) if retry_after and retry_after.isdigit() else 5 * (attempt + 1), 20))
-    else:
-        raise last_error
-    text = raw.decode("utf-8", "replace")
-    text = re.sub(r"(?is)<(script|style|noscript).*?>.*?</\1>", " ", text)
-    text = re.sub(r"(?s)<[^>]+>", " ", text)
-    text = html.unescape(text)
-    return re.sub(r"\s+", " ", text)[:12000]
+            listing = fetch(url)
+            links = page_links(listing, url)
+            # Se il markup cambia, il listing stesso resta una fonte verificabile,
+            # ma non viene usato come unico fondamento per un articolo lungo.
+            for item in links[:8]:
+                if item["url"] in seen:
+                    continue
+                seen.add(item["url"])
+                try:
+                    detail = fetch(item["url"], limit=1_200_000)
+                    text = clean_html(detail)
+                    if len(text) >= 500:
+                        collected.append({
+                            "source": name,
+                            "title": item["title"],
+                            "url": item["url"],
+                            "extract": text[:10000]
+                        })
+                except Exception as exc:
+                    failures.append(f"{item['url']}: {exc}")
+        except Exception as exc:
+            failures.append(f"{url}: {exc}")
+        time.sleep(1)
+    if failures:
+        for failure in failures:
+            print(f"Fonte non disponibile: {failure}")
+    # Non basta la sola pagina indice: almeno un contenuto editoriale completo.
+    if not collected:
+        raise SystemExit("Nessuna notizia istituzionale completa raggiungibile: nessuna bozza generata.")
+    return collected[:12]
 
 def main():
+    if not os.environ.get("OPENAI_API_KEY"):
+        raise SystemExit("Secret OPENAI_API_KEY mancante.")
     today = dt.date.today()
-    gathered = []
-    for name, url in SOURCES:
-        try:
-            gathered.append({"source": name, "url": url, "extract": fetch(url)})
-        except Exception as exc:
-            print(f"Fonte non disponibile: {url}: {exc}")
-    if not gathered:
-        raise SystemExit("Nessuna fonte istituzionale raggiungibile: bozza non generata.")
+    sources = collect_sources()
     prompt = f"""
-Sei un redattore giuridico-divulgativo che prepara una BOZZA per lo Studio Notarile Daria Montemiglio (Roma e Albano Laziale).
-Data di redazione: {today.isoformat()}.
-Usa esclusivamente le informazioni supportate dagli estratti delle fonti istituzionali qui sotto. Non inventare norme, date, soglie, aliquote, procedure, sentenze o obblighi. Se gli estratti non bastano per un articolo concreto, crea un approfondimento prudente che spieghi il tema e segnali con precisione cosa deve essere verificato dal Notaio; non colmare lacune con supposizioni.
-Scegli un argomento utile per cittadini, famiglie o imprese tra casa/compravendite, successioni/donazioni, famiglia/patrimonio, impresa/società, novità normative e fiscali.
-Scrivi in italiano, tono sobrio e chiaro, 700-1000 parole, con titolo SEO naturale, meta description (max 155 caratteri), slug, categoria, introduzione, 3-5 sezioni H2, conclusione pratica, 3 FAQ solo se rispondibili dagli estratti e fonti con URL e data se disponibile.
-Non dare consulenza personalizzata. Inserisci in evidenza: "Contenuto divulgativo da sottoporre a verifica notarile prima della pubblicazione; non costituisce consulenza sul caso concreto."
-Rispondi SOLO con JSON valido avente chiavi: title, slug, category, meta_description, article_markdown, sources (array di oggetti name,url).
-FONTI:
-{json.dumps(gathered, ensure_ascii=False)}
+Sei un redattore giuridico-divulgativo per lo Studio Notarile Daria Montemiglio (Roma e Albano Laziale).
+Data: {today.isoformat()}.
+Prepara una BOZZA, non un parere e non una consulenza. Usa solo i fatti presenti nelle fonti riportate qui sotto. Non inventare norme, date, sentenze, importi, aliquote, procedure o obblighi. Distingui chiaramente fatti della fonte, spiegazioni generali e aspetti da verificare.
+Scegli un tema utile a cittadini, famiglie o imprese nelle categorie: Casa e compravendite; Successioni e donazioni; Famiglia e patrimonio; Imprese e società; Novità normative e fiscali.
+Scrivi in italiano chiaro e sobrio, circa 600-850 parole, con titolo, introduzione, 3-4 sezioni H2, conclusione pratica e FAQ solo se le fonti consentono risposte affidabili. Includi meta description max 155 caratteri e slug. Inserisci un riquadro iniziale che dica: "BOZZA DA VERIFICARE: contenuto divulgativo non pubblicato, da sottoporre a revisione notarile; non costituisce consulenza sul caso concreto."
+Non presentare le notizie territoriali come norme nazionali. Non usare una notizia locale come prova di una regola generale. Se le fonti non sostengono un articolo utile, restituisci {"skip":true,"reason":"..."}.
+Rispondi esclusivamente con JSON valido: title, slug, category, meta_description, article_markdown, sources (array di oggetti name,url), oppure skip e reason.
+FONTI ISTITUZIONALI:
+{json.dumps(sources, ensure_ascii=False)}
 """
     payload = {
         "model": os.getenv("OPENAI_MODEL", "gpt-4.1-mini"),
         "messages": [
-            {"role":"system","content":"Produci bozze giuridiche rigorose, prudenti e tracciabili. Non inventare mai riferimenti normativi."},
-            {"role":"user","content":prompt}
+            {"role": "system", "content": "Sei rigoroso e prudente. Non inventare riferimenti giuridici. Cita solo le fonti fornite."},
+            {"role": "user", "content": prompt}
         ],
-        "response_format":{"type":"json_object"},
-        "temperature":0.3
+        "response_format": {"type": "json_object"},
+        "temperature": 0.2
     }
-    req = urllib.request.Request(
+    request = urllib.request.Request(
         "https://api.openai.com/v1/chat/completions",
-        data=json.dumps(payload).encode(),
-        headers={"Authorization":"Bearer "+os.environ["OPENAI_API_KEY"],"Content-Type":"application/json"},
+        data=json.dumps(payload).encode("utf-8"),
+        headers={"Authorization": "Bearer " + os.environ["OPENAI_API_KEY"], "Content-Type": "application/json"},
         method="POST"
     )
-    with urllib.request.urlopen(req, timeout=120) as response:
-        result=json.loads(response.read().decode())
-    article=json.loads(result["choices"][0]["message"]["content"])
-    slug=re.sub(r"[^a-z0-9-]+","-",article["slug"].lower()).strip("-")[:80]
+    with urllib.request.urlopen(request, timeout=150) as response:
+        result = json.loads(response.read().decode("utf-8"))
+    article = json.loads(result["choices"][0]["message"]["content"])
+    if article.get("skip"):
+        raise SystemExit("Nessuna bozza adatta: " + str(article.get("reason", "fonti insufficienti")))
+    required = ("title", "slug", "category", "meta_description", "article_markdown")
+    if any(not isinstance(article.get(key), str) or not article[key].strip() for key in required):
+        raise SystemExit("Risposta del modello incompleta: bozza non salvata.")
+    slug = re.sub(r"[^a-z0-9-]+", "-", article["slug"].lower()).strip("-")[:80]
     if not slug:
-        raise SystemExit("Slug non valido")
-    target=Path("approfondimenti/bozze")
+        raise SystemExit("Slug non valido.")
+    source_rows = []
+    for item in article.get("sources", []):
+        url = item.get("url", "")
+        if safe_url(url):
+            source_rows.append(f"- [{item.get('name', 'Consiglio Nazionale del Notariato')}]({url})")
+    if not source_rows:
+        raise SystemExit("La bozza non contiene fonti istituzionali verificabili.")
+    target = Path("approfondimenti/bozze")
     target.mkdir(parents=True, exist_ok=True)
-    path=target/f"{today.isoformat()}-{slug}.md"
-    source_lines="\\n".join(f"- [{s['name']}]({s['url']})" for s in article.get("sources",[]))
-    content=f"""---
+    path = target / f"{today.isoformat()}-{slug}.md"
+    # Non sovrascrivere mai una bozza già esistente.
+    if path.exists():
+        path = target / f"{today.isoformat()}-{slug}-{dt.datetime.now().strftime('%H%M%S')}.md"
+    title = article["title"].replace('"', "'").replace("\n", " ")
+    category = article["category"].replace('"', "'").replace("\n", " ")
+    description = article["meta_description"].replace('"', "'").replace("\n", " ")
+    content = f"""---
 status: bozza-da-verificare
 date: {today.isoformat()}
-title: "{article['title'].replace('"', chr(39))}"
+title: "{title}"
 slug: {slug}
-category: "{article['category'].replace('"', chr(39))}"
-meta_description: "{article['meta_description'].replace('"', chr(39))}"
+category: "{category}"
+meta_description: "{description}"
 ---
 
 # {article['title']}
@@ -103,7 +180,7 @@ meta_description: "{article['meta_description'].replace('"', chr(39))}"
 
 ## Fonti istituzionali
 
-{source_lines}
+{chr(10).join(source_rows)}
 """
     path.write_text(content, encoding="utf-8")
     print(f"Bozza generata: {path}")
