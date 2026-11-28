@@ -557,3 +557,27 @@ button,a{ -webkit-tap-highlight-color:transparent }
   .section:has(.article-body) .article-body h2{font-size:27px;margin:26px 0 12px}
   .section:has(.article-body) .article-body h3{font-size:22px}
 }
+
+
+/* Introduzione Approfondimenti: composizione editoriale bilanciata */
+.insights-intro-grid{
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  column-gap:clamp(36px,6vw,84px);
+  row-gap:34px;
+  align-items:center;
+}
+.insights-intro-heading{align-self:end}
+.insights-intro-copy{align-self:center;max-width:570px}
+.insights-intro-photo{grid-column:1/-1;width:100%;margin-top:4px}
+.insights-intro-photo img{
+  display:block;width:100%;height:clamp(250px,31vw,390px);
+  object-fit:cover;object-position:center 54%;
+  border:1px solid #ddc9a4;
+}
+@media(max-width:800px){
+  .insights-editorial-intro{padding:52px 0}
+  .insights-intro-grid{grid-template-columns:1fr;gap:24px}
+  .insights-intro-heading,.insights-intro-copy{align-self:auto;max-width:none}
+  .insights-intro-photo{grid-column:1;margin-top:4px}
+  .insights-intro-photo img{height:auto;aspect-ratio:16/10}
+}
