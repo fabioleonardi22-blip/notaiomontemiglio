@@ -155,6 +155,10 @@ def collect_sources():
     print(f"Contenuti istituzionali completi raccolti: {len(collected)}")
     return collected[:12]
 
+def normalize_quote(value):
+    value = html.unescape(value).lower()
+    value = re.sub(r"[^a-zàèéìòù0-9 ]+", " ", value)
+    return re.sub(r"\\s+", " ", value).strip()
 def markdown_to_html(markdown):
     """Convertitore minimale e sicuro per il Markdown prodotto dal modello."""
     out = []
@@ -298,7 +302,7 @@ FONTI ISTITUZIONALI:
         url = entry.get("source_url", "")
         quote = entry.get("exact_quote", "").strip()
         if (not claim or url not in selected_urls or len(quote.split()) < 12
-                or quote not in source_text.get(url, "")):
+                or normalize_quote(quote) not in normalize_quote(source_text.get(url, ""))):
             raise SystemExit("Pubblicazione annullata: citazione non letterale, non verificata o non collegata a una fonte selezionata.")
         evidence_urls.add(url)
     if len(evidence_urls) < 2:
