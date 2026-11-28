@@ -615,3 +615,15 @@ button,a{ -webkit-tap-highlight-color:transparent }
  .photo-overlay-wrap{width:100%}
  .photo-overlay-wrap>.photo{height:auto;aspect-ratio:4/3}
 }
+
+
+/* Box appuntamento autonomo tra i riquadri introduttivi e Lo Studio */
+.studio-between-cta{padding:28px 0;background:#071e17;color:#f7f1e6}
+.studio-between-cta .ctainner{display:flex;flex-direction:row;align-items:center;justify-content:space-between;gap:28px}
+.studio-between-cta h2{margin:0 0 5px;color:#f7f1e6;font:400 clamp(25px,2.7vw,34px)/1.15 Georgia,"Times New Roman",serif}
+.studio-between-cta p{margin:0;color:#e8dfd0;font:16px/1.45 Georgia,"Times New Roman",serif}
+.studio-between-cta .btn{border:1px solid #d9ad58;color:#fff;background:transparent;padding:15px 25px}
+@media(max-width:700px){
+ .studio-between-cta{padding:24px 0}
+ .studio-between-cta .ctainner{flex-direction:column;align-items:flex-start;gap:16px}
+}
