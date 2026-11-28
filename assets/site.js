@@ -26,3 +26,15 @@ const b=document.querySelector('.menu'),n=document.querySelector('.nav nav');if(
   const footer=document.querySelector('footer .foot');
   if(footer&&!footer.querySelector('.cookie-preferences-link')){const a=document.createElement('a');a.href='#cookie-preferences';a.className='cookie-preferences-link';a.textContent='Preferenze cookie';a.addEventListener('click',e=>{e.preventDefault();openBanner(true)});footer.appendChild(a)}
 })();
+
+// Interazioni della pagina Approfondimenti
+(() => {
+  const topics = document.querySelectorAll('.insights-topic');
+  topics.forEach((topic) => {
+    topic.addEventListener('click', () => {
+      const label = topic.querySelector('h3')?.textContent?.trim();
+      const heading = document.querySelector('#articoli .insights-section-heading h2');
+      if (heading && label) heading.textContent = 'Approfondimenti: ' + label;
+    });
+  });
+})();
