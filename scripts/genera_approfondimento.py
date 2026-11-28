@@ -27,7 +27,7 @@ def safe_url(url):
 
 def sectigo_intermediate():
     """Scarica e verifica l'intermedio Sectigo OV R36 tramite fingerprint fissata."""
-    cert_url = "https://crt.sectigo.com/SectigoPublicServerAuthenticationCAOVR36.crt"
+    cert_url = "http://crt.sectigo.com/SectigoPublicServerAuthenticationCAOVR36.crt"
     expected = "6542D176BED50F193C0CE297AE44ECD8A0A86BEC2EDE682769344059B4E78530"
     curl = shutil.which("curl")
     openssl = shutil.which("openssl")
