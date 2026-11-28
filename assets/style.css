@@ -679,3 +679,8 @@ button,a{ -webkit-tap-highlight-color:transparent }
 .activity-details>p{padding-top:12px;font-size:14px;line-height:1.75;color:#625f56}
 .activitygrid article:has(.activity-details[open]){min-height:0}
 @media(max-width:600px){.activity-details>p{font-size:14px}}
+
+.form-honeypot{position:absolute!important;left:-10000px!important;width:1px!important;height:1px!important;overflow:hidden!important}
+#form-status[data-state="success"]{color:#17633f}
+#form-status[data-state="error"]{color:#9b2c2c}
+#request button[disabled]{opacity:.65;cursor:wait}
