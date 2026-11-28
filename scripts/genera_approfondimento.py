@@ -25,6 +25,41 @@ def safe_url(url):
     parsed = urllib.parse.urlparse(url)
     return parsed.scheme == "https" and parsed.hostname in ALLOWED_HOSTS
 
+def sectigo_intermediate():
+    """Scarica e verifica l'intermedio Sectigo OV R36 tramite fingerprint fissata."""
+    cert_url = "https://crt.sh/?d=4267304698"
+    expected = "6542D176BED50F193C0CE297AE44ECD8A0A86BEC2EDE682769344059B4E78530"
+    curl = shutil.which("curl")
+    openssl = shutil.which("openssl")
+    if not curl or not openssl:
+        raise RuntimeError("curl/openssl non disponibili per la verifica della CA intermedia.")
+    import tempfile
+    with tempfile.TemporaryDirectory() as temp:
+        raw_path = Path(temp) / "sectigo.crt"
+        pem_path = Path(temp) / "sectigo.pem"
+        download = subprocess.run(
+            [curl, "--fail", "--location", "--silent", "--show-error",
+             "--max-time", "30", cert_url, "--output", str(raw_path)],
+            capture_output=True, text=True, timeout=35
+        )
+        if download.returncode:
+            raise RuntimeError("Impossibile scaricare il certificato intermedio Sectigo da crt.sh: " + download.stderr.strip())
+        converted = subprocess.run(
+            [openssl, "x509", "-inform", "DER", "-in", str(raw_path), "-out", str(pem_path)],
+            capture_output=True, text=True
+        )
+        if converted.returncode:
+            # crt.sh può restituire PEM; in tal caso lo si accetta solo dopo fingerprint.
+            pem_path.write_bytes(raw_path.read_bytes())
+        check = subprocess.run(
+            [openssl, "x509", "-in", str(pem_path), "-noout", "-fingerprint", "-sha256"],
+            capture_output=True, text=True
+        )
+        fingerprint = check.stdout.strip().split("=", 1)[-1].replace(":", "").upper()
+        if check.returncode or fingerprint != expected:
+            raise RuntimeError("Fingerprint della CA Sectigo non corrispondente: certificato rifiutato.")
+        return pem_path.read_bytes()
+
 def fetch(url, limit=1_800_000):
     if not safe_url(url):
         raise ValueError(f"URL non consentito: {url}")
@@ -33,17 +68,27 @@ def fetch(url, limit=1_800_000):
         with urllib.request.urlopen(request, timeout=35) as response:
             return response.read(limit).decode("utf-8", "replace")
     except Exception as first_error:
-        # Fallback su curl del runner: usa il trust store di sistema, senza disabilitare TLS.
+        # Il server Notariato non presenta correttamente la catena intermedia.
+        # Si usa esclusivamente l'intermedio OV R36 ufficiale, verificato via SHA-256.
         curl = shutil.which("curl")
         if not curl:
             raise RuntimeError(f"Download fallito: {first_error}") from first_error
-        result = subprocess.run(
-            [curl, "--fail", "--location", "--silent", "--show-error",
-             "--max-time", "45", "--max-filesize", str(limit), "--user-agent", HEADERS["User-Agent"], url],
-            capture_output=True, text=True, timeout=55
-        )
+        import tempfile
+        cert_pem = sectigo_intermediate()
+        with tempfile.NamedTemporaryFile(mode="wb", suffix=".pem") as cert_file:
+            cert_file.write(cert_pem)
+            cert_file.flush()
+            result = subprocess.run(
+                [curl, "--fail", "--location", "--silent", "--show-error",
+                 "--max-time", "45", "--max-filesize", str(limit),
+                 "--user-agent", HEADERS["User-Agent"], "--cacert", cert_file.name, url],
+                capture_output=True, text=True, timeout=55
+            )
         if result.returncode:
-            raise RuntimeError(f"Download fallito con urllib e curl: {first_error}; {result.stderr.strip()}")
+            raise RuntimeError(
+                f"Download HTTPS non verificato anche con CA Sectigo OV R36 fissata: "
+                f"{first_error}; {result.stderr.strip()}"
+            )
         return result.stdout[:limit]
 
 def clean_html(raw):
