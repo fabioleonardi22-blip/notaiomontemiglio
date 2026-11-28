@@ -47,15 +47,15 @@ def fetch(url, limit=1_800_000):
         return result.stdout[:limit]
 
 def clean_html(raw):
-    raw = re.sub(r"(?is)<(script|style|noscript|svg|nav|footer|header).*?>.*?</\\1>", " ", raw)
+    raw = re.sub(r"(?is)<(script|style|noscript|svg|nav|footer|header).*?>.*?</\1>", " ", raw)
     raw = re.sub(r"(?s)<[^>]+>", " ", raw)
     raw = html.unescape(raw)
-    return re.sub(r"\\s+", " ", raw).strip()
+    return re.sub(r"\s+", " ", raw).strip()
 
 def page_links(raw, base_url):
     links = []
     # Estrazione link essenziale senza dipendenze: i link vengono poi validati.
-    for match in re.finditer(r"""(?is)<a\\b[^>]*href\\s*=\\s*["']([^"']+)["'][^>]*>(.*?)</a>""", raw):
+    for match in re.finditer(r"""(?is)<a\b[^>]*href\s*=\s*["']([^"']+)["'][^>]*>(.*?)</a>""", raw):
         href, label = match.groups()
         title = clean_html(label)
         absolute = urllib.parse.urljoin(base_url, html.unescape(href))
