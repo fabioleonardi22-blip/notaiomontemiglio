@@ -18,10 +18,10 @@ def fetch(url):
     with urllib.request.urlopen(req, timeout=25) as r:
         raw = r.read(1_500_000)
     text = raw.decode("utf-8", "replace")
-    text = re.sub(r"(?is)<(script|style|noscript).*?>.*?</\\1>", " ", text)
+    text = re.sub(r"(?is)<(script|style|noscript).*?>.*?</\1>", " ", text)
     text = re.sub(r"(?s)<[^>]+>", " ", text)
     text = html.unescape(text)
-    return re.sub(r"\\s+", " ", text)[:12000]
+    return re.sub(r"\s+", " ", text)[:12000]
 
 def main():
     today = dt.date.today()
