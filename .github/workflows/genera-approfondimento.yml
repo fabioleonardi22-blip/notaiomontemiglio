@@ -9,9 +9,14 @@ permissions:
   contents: write
   pull-requests: write
 
+concurrency:
+  group: generazione-approfondimenti
+  cancel-in-progress: false
+
 jobs:
   genera-bozza:
     runs-on: ubuntu-latest
+    timeout-minutes: 12
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -19,22 +24,22 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Installa certificati CA aggiornati
-        run: python -m pip install --upgrade certifi
-      - name: Genera bozza da fonti istituzionali
+      - name: Verifica fonti istituzionali e genera bozza
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           OPENAI_MODEL: gpt-4.1-mini
         run: python scripts/genera_approfondimento.py
-      - name: Apri una richiesta di revisione
+      - name: Apri richiesta di revisione
         uses: peter-evans/create-pull-request@v7
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: "Crea bozza editoriale per Approfondimenti"
           title: "Revisione editoriale: nuovo approfondimento notarile"
           body: |
-            È stata generata una nuova bozza a partire da pagine istituzionali.
+            Bozza generata a partire da pagine e articoli del Consiglio Nazionale del Notariato.
             
             **Non è pubblicata sul sito.** Verificare ogni informazione, aggiornare le fonti e approvare il contenuto prima della pubblicazione.
           branch: "editoriale/bozza-approfondimento"
           delete-branch: true
+          add-paths: |
+            approfondimenti/bozze/*.md
