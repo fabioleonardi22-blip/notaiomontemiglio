@@ -408,3 +408,8 @@ button,a{ -webkit-tap-highlight-color:transparent }
 }
 
 .photo.photo-card{object-position:68% center}
+
+
+/* Pagine legali: fondo avorio coerente con l'identità dello Studio */
+.legal-section{background:#f7f1e6!important;color:#171713}
+.legal-section .legal-content{background:transparent}
