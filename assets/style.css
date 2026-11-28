@@ -668,3 +668,14 @@ button,a{ -webkit-tap-highlight-color:transparent }
  .profile-editorial-copy h3{margin-top:30px}
  .profile-quote{font-size:17px}
 }
+
+
+/* Approfondimenti nelle schede attività: apertura discreta e accessibile */
+.activity-details{position:relative;z-index:1;margin-top:17px;border-top:1px solid #e5d8c1;padding-top:12px}
+.activity-details summary{display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;list-style:none;color:#8b672d;font:600 10px/1.5 Inter,Arial,sans-serif;letter-spacing:1.5px;text-transform:uppercase}
+.activity-details summary::-webkit-details-marker{display:none}
+.activity-details summary span{font:18px/1 Georgia,serif;color:#a77b31;transition:transform .2s ease}
+.activity-details[open] summary span{transform:rotate(45deg)}
+.activity-details>p{padding-top:12px;font-size:14px;line-height:1.75;color:#625f56}
+.activitygrid article:has(.activity-details[open]){min-height:0}
+@media(max-width:600px){.activity-details>p{font-size:14px}}
