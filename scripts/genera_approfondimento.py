@@ -5,7 +5,11 @@ import html
 import json
 import os
 import re
+import ssl
+import time
+import urllib.error
 import urllib.request
+import certifi
 from pathlib import Path
 
 SOURCES = [
@@ -14,9 +18,22 @@ SOURCES = [
     ("Agenzia delle Entrate", "https://www.agenziaentrate.gov.it/portale/web/guest/home"),
 ]
 def fetch(url):
-    req = urllib.request.Request(url, headers={"User-Agent":"StudioMontemiglioEditorialBot/1.0 (informazione; contatto: dmontemiglio@notariato.it)"})
-    with urllib.request.urlopen(req, timeout=25) as r:
-        raw = r.read(1_500_000)
+    req = urllib.request.Request(url, headers={"User-Agent":"Mozilla/5.0 (compatible; StudioMontemiglioEditorialBot/1.0; +https://notaiomontemiglio.vercel.app)"})
+    context = ssl.create_default_context(cafile=certifi.where())
+    last_error = None
+    for attempt in range(3):
+        try:
+            with urllib.request.urlopen(req, timeout=30, context=context) as r:
+                raw = r.read(1_500_000)
+            break
+        except urllib.error.HTTPError as exc:
+            last_error = exc
+            if exc.code != 429 or attempt == 2:
+                raise
+            retry_after = exc.headers.get("Retry-After")
+            time.sleep(min(int(retry_after) if retry_after and retry_after.isdigit() else 5 * (attempt + 1), 20))
+    else:
+        raise last_error
     text = raw.decode("utf-8", "replace")
     text = re.sub(r"(?is)<(script|style|noscript).*?>.*?</\1>", " ", text)
     text = re.sub(r"(?s)<[^>]+>", " ", text)
