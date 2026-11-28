@@ -152,8 +152,8 @@ def collect_sources():
     return collected[:12]
 
 def main():
-    if not os.environ.get("OPENAI_API_KEY"):
-        raise SystemExit("Secret OPENAI_API_KEY mancante.")
+    if not os.environ.get("GEMINI_API_KEY"):
+        raise SystemExit("Secret GEMINI_API_KEY mancante.")
     today = dt.date.today()
     sources = collect_sources()
     prompt = f"""
@@ -167,44 +167,68 @@ Rispondi esclusivamente con JSON valido: title, slug, category, meta_description
 FONTI ISTITUZIONALI:
 {json.dumps(sources, ensure_ascii=False)}
 """
+    model = os.getenv("GEMINI_MODEL", "gemini-3.1-flash-lite")
+    endpoint = (
+        "https://generativelanguage.googleapis.com/v1beta/models/"
+        + urllib.parse.quote(model, safe="")
+        + ":generateContent"
+    )
     payload = {
-        "model": os.getenv("OPENAI_MODEL", "gpt-4.1-mini"),
-        "messages": [
-            {"role": "system", "content": "Sei rigoroso e prudente. Non inventare riferimenti giuridici. Cita solo le fonti fornite."},
-            {"role": "user", "content": prompt}
-        ],
-        "response_format": {"type": "json_object"},
-        "temperature": 0.2
+        "systemInstruction": {
+            "parts": [{"text": "Sei rigoroso e prudente. Non inventare riferimenti giuridici. Cita solo le fonti fornite."}]
+        },
+        "contents": [{"role": "user", "parts": [{"text": prompt}]}],
+        "generationConfig": {
+            "temperature": 0.2,
+            "responseMimeType": "application/json",
+            "maxOutputTokens": 8192
+        }
     }
     request = urllib.request.Request(
-        "https://api.openai.com/v1/chat/completions",
+        endpoint,
         data=json.dumps(payload).encode("utf-8"),
-        headers={"Authorization": "Bearer " + os.environ["OPENAI_API_KEY"], "Content-Type": "application/json"},
+        headers={"x-goog-api-key": os.environ["GEMINI_API_KEY"], "Content-Type": "application/json"},
         method="POST"
     )
     result = None
-    for attempt in range(4):
+    for attempt in range(3):
         try:
-            with urllib.request.urlopen(request, timeout=150) as response:
+            with urllib.request.urlopen(request, timeout=180) as response:
                 result = json.loads(response.read().decode("utf-8"))
             break
         except urllib.error.HTTPError as exc:
             detail = exc.read().decode("utf-8", "replace")
             try:
                 api_error = json.loads(detail).get("error", {})
-                code = api_error.get("code", "")
+                code = api_error.get("status", "")
                 message = api_error.get("message", detail[:1200])
             except Exception:
                 code, message = "", detail[:1200]
-            if exc.code == 429 and code not in ("insufficient_quota", "billing_hard_limit_reached", "credit_balance_exhausted") and attempt < 3:
-                wait = 15 * (2 ** attempt)
-                print(f"OpenAI rate limit (tentativo {attempt + 1}/4): nuovo tentativo tra {wait}s.")
+            # Retry solo per limiti temporanei e indisponibilità, mai per quota esaurita
+            # o errori di configurazione/autenticazione.
+            retryable = exc.code in (429, 500, 502, 503, 504)
+            if retryable and attempt < 2 and "quota" not in message.lower():
+                wait = 20 * (attempt + 1)
+                print(f"Gemini temporaneamente non disponibile (tentativo {attempt + 1}/3): attesa {wait}s.")
                 time.sleep(wait)
                 continue
-            raise SystemExit(f"API OpenAI HTTP {exc.code} ({code or 'errore'}): {message}")
+            raise SystemExit(f"Gemini API HTTP {exc.code} ({code or 'errore'}): {message}")
+        except (TimeoutError, urllib.error.URLError) as exc:
+            if attempt < 2:
+                wait = 20 * (attempt + 1)
+                print(f"Connessione Gemini temporaneamente non disponibile: attesa {wait}s.")
+                time.sleep(wait)
+                continue
+            raise SystemExit(f"Connessione Gemini non riuscita: {exc}")
     if result is None:
-        raise SystemExit("API OpenAI non ha restituito una risposta.")
-    article = json.loads(result["choices"][0]["message"]["content"])
+        raise SystemExit("Gemini non ha restituito una risposta.")
+    try:
+        generated_text = result["candidates"][0]["content"]["parts"][0]["text"]
+        article = json.loads(generated_text)
+    except (KeyError, IndexError, TypeError, json.JSONDecodeError) as exc:
+        feedback = result.get("promptFeedback", {})
+        raise SystemExit(f"Risposta Gemini non valida o bloccata; bozza non salvata. Dettaglio: {feedback or str(exc)}")
+
     if article.get("skip"):
         raise SystemExit("Nessuna bozza adatta: " + str(article.get("reason", "fonti insufficienti")))
     required = ("title", "slug", "category", "meta_description", "article_markdown")
