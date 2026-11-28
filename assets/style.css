@@ -581,3 +581,28 @@ button,a{ -webkit-tap-highlight-color:transparent }
   .insights-intro-photo{grid-column:1;margin-top:4px}
   .insights-intro-photo img{height:auto;aspect-ratio:16/10}
 }
+
+
+/* CTA sovrapposta al centro della fotografia della targa */
+.studio__photo{position:relative}
+.studio-photo-cta{
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:min(88%,440px);padding:24px 26px;text-align:center;
+  color:#fff;background:rgba(7,30,23,.88);
+  border:1px solid rgba(201,154,67,.9);
+  box-shadow:0 12px 34px rgba(0,0,0,.22);
+}
+.studio-photo-cta h2{margin:0 0 8px;color:#fff;font:400 clamp(21px,2.2vw,29px)/1.16 Georgia,"Times New Roman",serif}
+.studio-photo-cta p{margin:0 0 15px;color:#f7f1e6;font:14px/1.5 Georgia,"Times New Roman",serif}
+.studio-photo-cta a{
+  display:inline-flex;align-items:center;gap:12px;padding:10px 19px;
+  color:#fff;text-decoration:none;text-transform:uppercase;
+  font:600 11px Inter,Arial,sans-serif;letter-spacing:1.8px;
+  border:1px solid #d9ad58;transition:background .2s ease,color .2s ease
+}
+.studio-photo-cta a:hover{background:#d9ad58;color:#071e17}
+@media(max-width:800px){
+ .studio-photo-cta{width:min(88%,390px);padding:19px 17px}
+ .studio-photo-cta h2{font-size:23px}
+ .studio-photo-cta p{font-size:13px}
+}
