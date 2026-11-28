@@ -498,3 +498,14 @@ button,a{ -webkit-tap-highlight-color:transparent }
 .insights-contact-band .btn{color:#071e17}
 @media(max-width:900px){.insights-hero-inner{grid-template-columns:1fr;gap:38px}.insights-hero-aside{max-width:460px}.insights-hero:after{right:-180px}.insights-intro-grid,.insights-method-grid{grid-template-columns:1fr;gap:28px}.insights-topic-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.insights-topic,.insights-topic:nth-child(4),.insights-topic:nth-child(5){grid-column:auto}.insights-topic:last-child{grid-column:1/-1}.insights-method-grid{gap:15px}}
 @media(max-width:600px){.insights-hero{padding:62px 0}.insights-hero h1{font-size:44px}.insights-hero-aside{padding-left:20px}.insights-editorial-intro,.insights-topics,.insights-articles,.insights-method{padding:54px 0}.insights-intro-grid{gap:18px}.insights-section-heading{display:block}.insights-section-heading>p{margin-top:15px}.insights-topic-grid{grid-template-columns:1fr;gap:13px}.insights-topic,.insights-topic:last-child{grid-column:auto;min-height:230px}.insights-empty{grid-template-columns:1fr;padding:25px}.insights-empty h3{font-size:24px}.insights-contact-band .wrap{align-items:flex-start;flex-direction:column}.insights-contact-band h2{font-size:27px}}
+
+
+/* Schede degli approfondimenti pubblicati */
+.insights-published-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.insights-published-card{display:flex;flex-direction:column;gap:12px;padding:30px;background:#fffaf1;border:1px solid #dfcfb1;color:#18352b}
+.insights-published-card .topic-label{margin:0;font:10px 'DM Sans';letter-spacing:2px;text-transform:uppercase;color:#8a806f}
+.insights-published-card h3{font-size:25px;font-weight:400;line-height:1.2;margin:0;color:#18352b}
+.insights-published-card p{font-size:15px;line-height:1.65;margin:0;color:#625f56}
+.insights-published-card small{font:11px 'DM Sans';color:#8a806f}
+.insights-published-card a{margin-top:auto;color:#8f6b27;text-decoration:underline;text-underline-offset:4px;font:600 12px 'DM Sans'}
+@media(max-width:600px){.insights-published-grid{grid-template-columns:1fr}.insights-published-card{padding:24px}}
