@@ -27,7 +27,7 @@ def safe_url(url):
 
 def sectigo_intermediate():
     """Scarica e verifica l'intermedio Sectigo OV R36 tramite fingerprint fissata."""
-    cert_url = "https://crt.sh/?d=4267304698"
+    cert_url = "https://crt.sectigo.com/SectigoPublicServerAuthenticationCAOVR36.crt"
     expected = "6542D176BED50F193C0CE297AE44ECD8A0A86BEC2EDE682769344059B4E78530"
     curl = shutil.which("curl")
     openssl = shutil.which("openssl")
@@ -105,7 +105,8 @@ def page_links(raw, base_url):
         title = clean_html(label)
         absolute = urllib.parse.urljoin(base_url, html.unescape(href))
         parsed = urllib.parse.urlparse(absolute)
-        if (safe_url(absolute) and parsed.path.startswith(("/it/news/", "/it/comunicati-stampa/"))
+        if (safe_url(absolute) and "{" not in absolute and "}" not in absolute
+                and parsed.path.startswith(("/it/news/", "/it/comunicati-stampa/"))
                 and len(title) > 24 and not title.lower().startswith(("leggi", "scopri", "torna"))):
             links.append({"title": title[:240], "url": absolute})
     unique = {}
@@ -161,7 +162,7 @@ Data: {today.isoformat()}.
 Prepara una BOZZA, non un parere e non una consulenza. Usa solo i fatti presenti nelle fonti riportate qui sotto. Non inventare norme, date, sentenze, importi, aliquote, procedure o obblighi. Distingui chiaramente fatti della fonte, spiegazioni generali e aspetti da verificare.
 Scegli un tema utile a cittadini, famiglie o imprese nelle categorie: Casa e compravendite; Successioni e donazioni; Famiglia e patrimonio; Imprese e società; Novità normative e fiscali.
 Scrivi in italiano chiaro e sobrio, circa 600-850 parole, con titolo, introduzione, 3-4 sezioni H2, conclusione pratica e FAQ solo se le fonti consentono risposte affidabili. Includi meta description max 155 caratteri e slug. Inserisci un riquadro iniziale che dica: "BOZZA DA VERIFICARE: contenuto divulgativo non pubblicato, da sottoporre a revisione notarile; non costituisce consulenza sul caso concreto."
-Non presentare le notizie territoriali come norme nazionali. Non usare una notizia locale come prova di una regola generale. Se le fonti non sostengono un articolo utile, restituisci {"skip":true,"reason":"..."}.
+Non presentare le notizie territoriali come norme nazionali. Non usare una notizia locale come prova di una regola generale. Se le fonti non sostengono un articolo utile, restituisci {{"skip":true,"reason":"..."}}.
 Rispondi esclusivamente con JSON valido: title, slug, category, meta_description, article_markdown, sources (array di oggetti name,url), oppure skip e reason.
 FONTI ISTITUZIONALI:
 {json.dumps(sources, ensure_ascii=False)}
