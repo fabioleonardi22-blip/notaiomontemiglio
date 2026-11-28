@@ -106,7 +106,7 @@ def page_links(raw, base_url):
         absolute = urllib.parse.urljoin(base_url, html.unescape(href))
         parsed = urllib.parse.urlparse(absolute)
         if (safe_url(absolute) and "{" not in absolute and "}" not in absolute
-                and parsed.path.startswith(("/it/news/", "/it/comunicati-stampa/"))
+                and parsed.path.startswith(("/it/news/", "/it/archivio-news/", "/it/comunicati-stampa/"))
                 and len(title) > 24 and not title.lower().startswith(("leggi", "scopri", "torna"))):
             links.append({"title": title[:240], "url": absolute})
     unique = {}
@@ -147,8 +147,12 @@ def collect_sources():
         for failure in failures:
             print(f"Fonte non disponibile: {failure}")
     # Non basta la sola pagina indice: almeno un contenuto editoriale completo.
-    if not collected:
-        raise SystemExit("Nessuna notizia istituzionale completa raggiungibile: nessuna bozza generata.")
+    if len(collected) < 2:
+        raise SystemExit(
+            f"Solo {len(collected)} contenuto/i istituzionale/i completo/i recuperato/i: "
+            "ne servono almeno due per verificare il tema. Nessuna bozza generata."
+        )
+    print(f"Contenuti istituzionali completi raccolti: {len(collected)}")
     return collected[:12]
 
 def main():
@@ -161,9 +165,11 @@ Sei un redattore giuridico-divulgativo per lo Studio Notarile Daria Montemiglio 
 Data: {today.isoformat()}.
 Prepara una BOZZA, non un parere e non una consulenza. Usa solo i fatti presenti nelle fonti riportate qui sotto. Non inventare norme, date, sentenze, importi, aliquote, procedure o obblighi. Distingui chiaramente fatti della fonte, spiegazioni generali e aspetti da verificare.
 Scegli un tema utile a cittadini, famiglie o imprese nelle categorie: Casa e compravendite; Successioni e donazioni; Famiglia e patrimonio; Imprese e società; Novità normative e fiscali.
-Scrivi in italiano chiaro e sobrio, circa 600-850 parole, con titolo, introduzione, 3-4 sezioni H2, conclusione pratica e FAQ solo se le fonti consentono risposte affidabili. Includi meta description max 155 caratteri e slug. Inserisci un riquadro iniziale che dica: "BOZZA DA VERIFICARE: contenuto divulgativo non pubblicato, da sottoporre a revisione notarile; non costituisce consulenza sul caso concreto."
-Non presentare le notizie territoriali come norme nazionali. Non usare una notizia locale come prova di una regola generale. Se le fonti non sostengono un articolo utile, restituisci {{"skip":true,"reason":"..."}}.
-Rispondi esclusivamente con JSON valido: title, slug, category, meta_description, article_markdown, sources (array di oggetti name,url), oppure skip e reason.
+Prima di scrivere, confronta le fonti: devono esserci almeno DUE articoli istituzionali completi che trattino direttamente lo stesso tema o aspetti strettamente collegati. Se le fonti sono solo annunci di eventi, iniziative locali, titoli o comunicati non pertinenti tra loro, restituisci skip. Non riempire i vuoti con nozioni giuridiche generiche.
+Scrivi in italiano chiaro e sobrio, circa 450-650 parole, con titolo, introduzione, 2-3 sezioni H2 e conclusione pratica. Ogni affermazione giuridica o fiscale deve essere direttamente supportata dagli estratti forniti; se non è supportata, omettila o segnala che necessita di verifica notarile. Non introdurre norme, sentenze, aliquote, scadenze, procedure o obblighi non esplicitamente documentati dalle fonti. Le fonti di un articolo locale non dimostrano una regola nazionale.
+Includi meta description max 155 caratteri e slug. Inserisci un riquadro iniziale che dica: "BOZZA DA VERIFICARE: contenuto divulgativo non pubblicato, da sottoporre a revisione notarile; non costituisce consulenza sul caso concreto."
+Rispondi skip se non puoi sostenere un approfondimento utile con almeno due fonti dirette e coerenti.
+Rispondi esclusivamente con JSON valido: title, slug, category, meta_description, article_markdown, sources (array di oggetti name,url), evidence (array di oggetti claim, source_urls), oppure skip e reason.
 FONTI ISTITUZIONALI:
 {json.dumps(sources, ensure_ascii=False)}
 """
@@ -238,12 +244,23 @@ FONTI ISTITUZIONALI:
     if not slug:
         raise SystemExit("Slug non valido.")
     source_rows = []
+    allowed_sources = {item["url"]: item for item in sources}
+    selected_urls = set()
     for item in article.get("sources", []):
         url = item.get("url", "")
-        if safe_url(url):
-            source_rows.append(f"- [{item.get('name', 'Consiglio Nazionale del Notariato')}]({url})")
-    if not source_rows:
-        raise SystemExit("La bozza non contiene fonti istituzionali verificabili.")
+        if safe_url(url) and url in allowed_sources:
+            selected_urls.add(url)
+            source_rows.append(f"- [{allowed_sources[url]['title']}]({url})")
+    if len(selected_urls) < 2:
+        raise SystemExit("Bozza scartata: non cita almeno due articoli istituzionali effettivamente letti.")
+    evidence = article.get("evidence", [])
+    if not isinstance(evidence, list) or not evidence:
+        raise SystemExit("Bozza scartata: manca la mappa delle affermazioni e delle relative fonti.")
+    for entry in evidence:
+        claim = entry.get("claim", "")
+        refs = entry.get("source_urls", [])
+        if not claim or not refs or any(url not in selected_urls for url in refs):
+            raise SystemExit("Bozza scartata: mappa delle evidenze incompleta o con fonti non verificate.")
     target = Path("approfondimenti/bozze")
     target.mkdir(parents=True, exist_ok=True)
     path = target / f"{today.isoformat()}-{slug}.md"
