@@ -509,3 +509,22 @@ button,a{ -webkit-tap-highlight-color:transparent }
 .insights-published-card small{font:11px 'DM Sans';color:#8a806f}
 .insights-published-card a{margin-top:auto;color:#8f6b27;text-decoration:underline;text-underline-offset:4px;font:600 12px 'DM Sans'}
 @media(max-width:600px){.insights-published-grid{grid-template-columns:1fr}.insights-published-card{padding:24px}}
+
+
+/* Articoli Approfondimenti: fondo avorio editoriale */
+.section:has(.article-body){background:#f7f1e6!important;color:#171713}
+.section:has(.article-body) article.wrap{color:#625f56}
+.section:has(.article-body) h1,
+.section:has(.article-body) .article-body h2,
+.section:has(.article-body) .insights-sources h2{color:#071e17}
+.section:has(.article-body) .eyebrow{color:#b88732}
+.section:has(.article-body) .insights-intro-note,
+.section:has(.article-body) .article-body p,
+.section:has(.article-body) .article-body li,
+.section:has(.article-body) article.wrap>p:last-child{color:#625f56}
+.section:has(.article-body) .article-body{color:#625f56}
+.section:has(.article-body) .insights-sources{border-top:1px solid #ddc9a4}
+.section:has(.article-body) .insights-sources a,
+.section:has(.article-body) article.wrap>p:last-child a{color:#173b30;text-decoration-color:#b88732}
+.article-hero-image{display:block;width:100%;height:auto;max-height:480px;object-fit:cover;margin:30px 0 38px;border:1px solid #ddc9a4}
+@media(max-width:700px){.article-hero-image{margin:22px 0 28px;max-height:320px}}
