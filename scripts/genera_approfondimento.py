@@ -196,7 +196,7 @@ FONTI ISTITUZIONALI:
                 message = api_error.get("message", detail[:1200])
             except Exception:
                 code, message = "", detail[:1200]
-            if exc.code == 429 and code not in ("insufficient_quota", "billing_hard_limit_reached") and attempt < 3:
+            if exc.code == 429 and code not in ("insufficient_quota", "billing_hard_limit_reached", "credit_balance_exhausted") and attempt < 3:
                 wait = 15 * (2 ** attempt)
                 print(f"OpenAI rate limit (tentativo {attempt + 1}/4): nuovo tentativo tra {wait}s.")
                 time.sleep(wait)
