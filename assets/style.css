@@ -584,7 +584,7 @@ button,a{ -webkit-tap-highlight-color:transparent }
 
 
 /* CTA sovrapposta al centro della fotografia della targa */
-.studio__photo{position:relative}
+.photo-overlay-wrap{position:relative;margin:0;min-width:0}
 .studio-photo-cta{
   position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
   width:min(88%,440px);padding:24px 26px;text-align:center;
@@ -605,4 +605,13 @@ button,a{ -webkit-tap-highlight-color:transparent }
  .studio-photo-cta{width:min(88%,390px);padding:19px 17px}
  .studio-photo-cta h2{font-size:23px}
  .studio-photo-cta p{font-size:13px}
+}
+
+/* CTA posizionata sulla seconda fotografia, nella sezione Sedi */
+.photo-overlay-wrap{position:relative;margin:0;min-width:0}
+.photo-overlay-wrap>.photo{display:block;width:100%;height:100%;object-fit:cover}
+.photo-overlay-wrap .studio-photo-cta{z-index:2}
+@media(max-width:800px){
+ .photo-overlay-wrap{width:100%}
+ .photo-overlay-wrap>.photo{height:auto;aspect-ratio:4/3}
 }
