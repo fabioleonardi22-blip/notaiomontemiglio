@@ -1,0 +1,39 @@
+name: Genera bozza Approfondimenti
+
+on:
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  genera-bozza:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Configura Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Genera bozza da fonti istituzionali
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_MODEL: gpt-4.1-mini
+        run: python scripts/genera_approfondimento.py
+      - name: Apri una richiesta di revisione
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "Crea bozza editoriale per Approfondimenti"
+          title: "Revisione editoriale: nuovo approfondimento notarile"
+          body: |
+            È stata generata una nuova bozza a partire da pagine istituzionali.
+            
+            **Non è pubblicata sul sito.** Verificare ogni informazione, aggiornare le fonti e approvare il contenuto prima della pubblicazione.
+          branch: "editoriale/bozza-approfondimento"
+          delete-branch: true
+          labels: "revisione,contenuti"
